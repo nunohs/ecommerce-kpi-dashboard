@@ -1,0 +1,21 @@
+# Python virtual environment
+backend/venv/
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+backend/.env
+
+# Database file
+backend/ecommerce.db
+
+# Node dependencies
+frontend/node_modules/
+
+# Build files
+frontend/dist/
