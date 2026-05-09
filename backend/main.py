@@ -10,13 +10,20 @@ Simple explanation:
 This file lets the frontend ask the backend for KPI data.
 """
 
+import os
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from calculations import get_all_metrics
 from insights import generate_insights
+from seed_data import seed_database
 
 app = FastAPI(title="E-Commerce KPI Dashboard API")
+
+@app.on_event("startup")
+def startup_event():
+    if not os.path.exists("ecommerce.db"):
+        seed_database()
 
 app.add_middleware(
     CORSMiddleware,
