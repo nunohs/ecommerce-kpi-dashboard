@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -11,19 +11,21 @@ import {
   CartesianGrid,
 } from "recharts";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
 function App() {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [selectedDays, setSelectedDays] = useState(90);
 
-  async function fetchMetrics() {
+  const fetchMetrics = useCallback(async (days) => {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:8000/metrics");
+      const response = await fetch(`${API_BASE_URL}/metrics?days=${days}`);
       const data = await response.json();
-
-      console.log("Fetched dashboard data:", data);
 
       setDashboardData(data);
       setLastUpdated(new Date());
@@ -32,11 +34,11 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    fetchMetrics();
-  }, []);
+    fetchMetrics(selectedDays);
+  }, [selectedDays, fetchMetrics]);
 
   if (loading && !dashboardData) {
     return (
@@ -67,11 +69,20 @@ function App() {
             </p>
 
             <button
-              onClick={fetchMetrics}
+              onClick={() => fetchMetrics(selectedDays)}
               className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium"
             >
               Refresh Data
             </button>
+            <select
+              value={selectedDays}
+              onChange={(e) => setSelectedDays(Number(e.target.value))}
+              className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm"
+            >
+              <option value={7}>Last 7 days</option>
+              <option value={30}>Last 30 days</option>
+              <option value={90}>Last 90 days</option>
+            </select>
           </div>
         </header>
 
@@ -101,7 +112,7 @@ function App() {
 
         {/* Charts */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <RevenueTrendChart data={metrics?.revenue_trend || []} />
+          <RevenueTrendChart data={metrics?.revenue_trend || []} days={selectedDays} />
           <CategoryPerformanceChart data={metrics?.category_performance || []} />
         </section>
 
@@ -130,12 +141,12 @@ function MetricCard({ label, value, status }) {
   );
 }
 
-function RevenueTrendChart({ data }) {
+function RevenueTrendChart({ data, days }) {
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
       <h2 className="text-xl font-semibold mb-1">Revenue Trend</h2>
       <p className="text-sm text-slate-400 mb-4">
-        Daily revenue performance over the last 90 days
+        Daily revenue performance over the last {days} days
       </p>
 
       <div className="h-72">
@@ -148,6 +159,7 @@ function RevenueTrendChart({ data }) {
             <Line
               type="monotone"
               dataKey="revenue"
+              stroke="#3b82f6"
               strokeWidth={2}
               dot={false}
             />
@@ -231,7 +243,7 @@ function TopProductsTable({ products }) {
                 <td className="py-3">{product.name}</td>
                 <td className="py-3 text-slate-400">{product.category}</td>
                 <td className="py-3 text-right font-medium">
-                  ${product.revenue.toLocaleString()}
+                  ${product.revenue?.toLocaleString()}
                 </td>
               </tr>
             ))}

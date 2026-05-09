@@ -10,7 +10,7 @@ Simple explanation:
 This file lets the frontend ask the backend for KPI data.
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from calculations import get_all_metrics
@@ -41,8 +41,8 @@ def health_check():
 
 
 @app.get("/metrics")
-def get_metrics():
-    metrics = get_all_metrics()
+def get_metrics(days: int = Query(default=90, ge=7, le=90)):
+    metrics = get_all_metrics(days)
     insights = generate_insights(metrics)
 
     return {
