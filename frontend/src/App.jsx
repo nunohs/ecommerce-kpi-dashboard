@@ -14,6 +14,21 @@ import {
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
+const SERIF = "Georgia, 'Times New Roman', serif";
+const AMBER = "#d97706";
+const AMBER_DIM = "#92400e";
+const CARD_BG = "#1c1917";
+const PAGE_BG = "#0c0a09";
+const BORDER = "#292524";
+const MUTED = "#78716c";
+const FAINT = "#44403c";
+
+function formatMastDate(date) {
+  return date
+    .toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+    .toUpperCase();
+}
+
 function App() {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,10 +38,8 @@ function App() {
   const fetchMetrics = useCallback(async (days) => {
     try {
       setLoading(true);
-
       const response = await fetch(`${API_BASE_URL}/metrics?days=${days}`);
       const data = await response.json();
-
       setDashboardData(data);
       setLastUpdated(new Date());
     } catch (error) {
@@ -42,82 +55,117 @@ function App() {
 
   if (loading && !dashboardData) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <p className="text-slate-300">Loading dashboard...</p>
+      <div style={{ backgroundColor: PAGE_BG }} className="min-h-screen flex items-center justify-center">
+        <p style={{ color: MUTED, letterSpacing: "0.2em", fontSize: "11px" }} className="uppercase">
+          Loading
+        </p>
       </div>
     );
   }
 
   const metrics = dashboardData?.metrics;
   const insights = dashboardData?.insights || [];
+  const now = new Date();
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">E-Commerce KPI Dashboard</h1>
-            <p className="text-slate-400 mt-1">
-              Business performance overview for a simulated online store
-            </p>
+    <div style={{ backgroundColor: PAGE_BG }} className="min-h-screen text-stone-100 px-6 py-5">
+      <div className="max-w-7xl mx-auto space-y-8">
+
+        {/* Masthead */}
+        <header>
+          <div
+            style={{ borderBottom: `1px solid ${BORDER}`, color: MUTED, fontSize: "11px", letterSpacing: "0.15em" }}
+            className="flex items-center justify-between uppercase pb-3"
+          >
+            <span>E-Commerce KPI Dashboard · {formatMastDate(now)}</span>
+            <div className="flex items-center gap-5">
+              <span className="flex items-center gap-2">
+                <span style={{ backgroundColor: AMBER }} className="w-1.5 h-1.5 rounded-full inline-block" />
+                Live
+              </span>
+              {lastUpdated && (
+                <span>Synced {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+              )}
+            </div>
           </div>
 
-          <div className="flex flex-col items-start md:items-end gap-2">
-            <p className="text-sm text-slate-400">
-              Last updated:{" "}
-              {lastUpdated ? lastUpdated.toLocaleTimeString() : "Not loaded"}
-            </p>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 pt-6">
+            <div>
+              <p style={{ color: MUTED, fontSize: "11px", letterSpacing: "0.18em" }} className="uppercase mb-4">
+                The Quarterly · E-Commerce Bulletin
+              </p>
+              <h1
+                style={{ fontFamily: SERIF, lineHeight: 1.08, fontSize: "clamp(2.5rem, 5vw, 3.75rem)" }}
+                className="font-bold text-stone-100"
+              >
+                Business{" "}
+                <em style={{ color: AMBER, fontStyle: "italic" }}>performance</em>
+                <br />
+                at a glance.
+              </h1>
+              <p style={{ color: MUTED, fontSize: "13px" }} className="mt-3 max-w-md">
+                A composed view of revenue, retention, and product mix for the simulated online store.
+              </p>
+            </div>
 
-            <button
-              onClick={() => fetchMetrics(selectedDays)}
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium"
-            >
-              Refresh Data
-            </button>
-            <select
-              value={selectedDays}
-              onChange={(e) => setSelectedDays(Number(e.target.value))}
-              className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm"
-            >
-              <option value={7}>Last 7 days</option>
-              <option value={30}>Last 30 days</option>
-              <option value={90}>Last 90 days</option>
-            </select>
+            <div className="flex flex-col items-start md:items-end gap-3 shrink-0">
+              <div className="flex gap-1">
+                {[7, 30, 90].map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => setSelectedDays(d)}
+                    style={{
+                      fontSize: "11px",
+                      letterSpacing: "0.12em",
+                      border: `1px solid ${selectedDays === d ? AMBER : FAINT}`,
+                      color: selectedDays === d ? AMBER : MUTED,
+                      backgroundColor: selectedDays === d ? "rgba(217,119,6,0.08)" : "transparent",
+                      padding: "4px 12px",
+                      cursor: "pointer",
+                      transition: "all 0.15s",
+                    }}
+                    className="uppercase"
+                  >
+                    {d}d
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => fetchMetrics(selectedDays)}
+                style={{
+                  fontSize: "11px",
+                  letterSpacing: "0.12em",
+                  border: `1px solid ${FAINT}`,
+                  color: MUTED,
+                  backgroundColor: "transparent",
+                  padding: "4px 12px",
+                  cursor: "pointer",
+                  transition: "border-color 0.15s",
+                }}
+                className="uppercase hover:border-stone-500"
+              >
+                ↺ Refresh data
+              </button>
+            </div>
           </div>
         </header>
 
         {/* Metric Cards */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricCard
-            label="Total Revenue"
-            value={`$${metrics?.total_revenue?.toLocaleString()}`}
-            status="good"
-          />
-          <MetricCard
-            label="Average Order Value"
-            value={`$${metrics?.average_order_value?.toLocaleString()}`}
-            status="neutral"
-          />
-          <MetricCard
-            label="Repeat Purchase Rate"
-            value={`${metrics?.repeat_purchase_rate}%`}
-            status="good"
-          />
-          <MetricCard
-            label="CAC Estimate"
-            value={`$${metrics?.cac_estimate?.assumed_cost_per_customer}`}
-            status="neutral"
-          />
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px" style={{ backgroundColor: BORDER }}>
+          <MetricCard label="Total Revenue"     value={`$${metrics?.total_revenue?.toLocaleString()}`}                         context="gross sales" />
+          <MetricCard label="Average Order"     value={`$${metrics?.average_order_value?.toLocaleString()}`}                   context="per order" />
+          <MetricCard label="Repeat Rate"       value={`${metrics?.repeat_purchase_rate}%`}                                   context="of customers" />
+          <MetricCard label="Acquisition Cost"  value={`$${metrics?.cac_estimate?.assumed_cost_per_customer}`}                context="blended CAC" />
         </section>
 
         {/* Charts */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-px" style={{ backgroundColor: BORDER }}>
           <RevenueTrendChart data={metrics?.revenue_trend || []} days={selectedDays} />
           <CategoryPerformanceChart data={metrics?.category_performance || []} />
         </section>
 
-        {/* Bottom Section */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Bottom */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-px" style={{ backgroundColor: BORDER }}>
           <InsightsCard insights={insights} />
           <TopProductsTable products={metrics?.top_products || []} />
         </section>
@@ -126,42 +174,70 @@ function App() {
   );
 }
 
-function MetricCard({ label, value, status }) {
-  const statusStyles = {
-    good: "border-green-500/40 bg-green-500/10",
-    neutral: "border-yellow-500/40 bg-yellow-500/10",
-    concern: "border-red-500/40 bg-red-500/10",
-  };
-
+function MetricCard({ label, value, context }) {
   return (
-    <div className={`border rounded-2xl p-5 ${statusStyles[status]}`}>
-      <p className="text-sm text-slate-400">{label}</p>
-      <h2 className="text-3xl font-bold mt-2">{value}</h2>
+    <div style={{ backgroundColor: CARD_BG, padding: "24px" }}>
+      <p style={{ color: MUTED, fontSize: "10px", letterSpacing: "0.18em" }} className="uppercase mb-4">
+        {label}
+      </p>
+      <p style={{ fontFamily: SERIF, fontSize: "2rem", lineHeight: 1 }} className="font-bold text-stone-100">
+        {value}
+      </p>
+      <p style={{ color: FAINT, fontSize: "11px", fontStyle: "italic" }} className="mt-3">
+        {context}
+      </p>
     </div>
   );
 }
 
 function RevenueTrendChart({ data, days }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-      <h2 className="text-xl font-semibold mb-1">Revenue Trend</h2>
-      <p className="text-sm text-slate-400 mb-4">
-        Daily revenue performance over the last {days} days
-      </p>
+    <div style={{ backgroundColor: CARD_BG, padding: "24px" }}>
+      <div className="flex items-start justify-between mb-5">
+        <div>
+          <p style={{ color: AMBER_DIM, fontSize: "10px", letterSpacing: "0.18em" }} className="uppercase mb-1">
+            Fig. 01
+          </p>
+          <h2 style={{ fontFamily: SERIF }} className="text-lg font-bold text-stone-100">
+            Revenue trend
+          </h2>
+        </div>
+        <p style={{ color: MUTED, fontSize: "11px", fontStyle: "italic" }}>
+          Daily · last {days} days · USD
+        </p>
+      </div>
 
-      <div className="h-72">
+      <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-            <YAxis />
-            <Tooltip />
+          <LineChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={BORDER} vertical={false} />
+            <XAxis
+              dataKey="date"
+              tick={{ fontSize: 10, fill: MUTED }}
+              axisLine={false}
+              tickLine={false}
+              interval="preserveStartEnd"
+            />
+            <YAxis
+              tick={{ fontSize: 10, fill: MUTED }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+              width={44}
+            />
+            <Tooltip
+              contentStyle={{ backgroundColor: "#111110", border: `1px solid ${BORDER}`, borderRadius: 0, fontSize: 12 }}
+              labelStyle={{ color: "#a8a29e", marginBottom: 4 }}
+              itemStyle={{ color: AMBER }}
+              formatter={(v) => [`$${v.toLocaleString()}`, "Revenue"]}
+            />
             <Line
               type="monotone"
               dataKey="revenue"
-              stroke="#3b82f6"
-              strokeWidth={2}
+              stroke={AMBER}
+              strokeWidth={1.5}
               dot={false}
+              activeDot={{ r: 3, fill: AMBER, strokeWidth: 0 }}
             />
           </LineChart>
         </ResponsiveContainer>
@@ -172,20 +248,46 @@ function RevenueTrendChart({ data, days }) {
 
 function CategoryPerformanceChart({ data }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-      <h2 className="text-xl font-semibold mb-1">Category Performance</h2>
-      <p className="text-sm text-slate-400 mb-4">
-        Revenue breakdown by product category
-      </p>
+    <div style={{ backgroundColor: CARD_BG, padding: "24px" }}>
+      <div className="flex items-start justify-between mb-5">
+        <div>
+          <p style={{ color: AMBER_DIM, fontSize: "10px", letterSpacing: "0.18em" }} className="uppercase mb-1">
+            Fig. 02
+          </p>
+          <h2 style={{ fontFamily: SERIF }} className="text-lg font-bold text-stone-100">
+            Category performance
+          </h2>
+        </div>
+        <p style={{ color: MUTED, fontSize: "11px", fontStyle: "italic" }}>Revenue by segment</p>
+      </div>
 
-      <div className="h-72">
+      <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="category" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="revenue" />
+          <BarChart data={data} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={BORDER} horizontal={false} />
+            <XAxis
+              type="number"
+              tick={{ fontSize: 10, fill: MUTED }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+            />
+            <YAxis
+              type="category"
+              dataKey="category"
+              tick={{ fontSize: 11, fill: "#a8a29e" }}
+              axisLine={false}
+              tickLine={false}
+              width={72}
+            />
+            <Tooltip
+              contentStyle={{ backgroundColor: "#111110", border: `1px solid ${BORDER}`, borderRadius: 0, fontSize: 12 }}
+              labelStyle={{ color: "#a8a29e", marginBottom: 4 }}
+              itemStyle={{ color: AMBER }}
+              formatter={(v) => [`$${v.toLocaleString()}`, "Revenue"]}
+              cursor={{ fill: "rgba(255,255,255,0.03)" }}
+            />
+            <Bar dataKey="revenue" fill={AMBER} radius={0} maxBarSize={18} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -195,24 +297,26 @@ function CategoryPerformanceChart({ data }) {
 
 function InsightsCard({ insights }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-      <h2 className="text-xl font-semibold mb-1">AI Business Insights</h2>
-      <p className="text-sm text-slate-400 mb-4">
-        Plain-English recommendations based on the KPI data
+    <div style={{ backgroundColor: CARD_BG, padding: "24px" }}>
+      <p style={{ color: AMBER_DIM, fontSize: "10px", letterSpacing: "0.18em" }} className="uppercase mb-1">
+        Analysis
       </p>
+      <h2 style={{ fontFamily: SERIF }} className="text-lg font-bold text-stone-100 mb-5">
+        Business insights
+      </h2>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {insights.length > 0 ? (
           insights.map((insight, index) => (
             <div
               key={index}
-              className="bg-slate-800/70 border border-slate-700 rounded-xl p-4"
+              style={{ borderLeft: `2px solid ${AMBER_DIM}`, paddingLeft: "14px" }}
             >
-              <p className="text-sm leading-relaxed">💡 {insight}</p>
+              <p style={{ color: "#a8a29e", fontSize: "13px", lineHeight: 1.6 }}>{insight}</p>
             </div>
           ))
         ) : (
-          <p className="text-slate-400 text-sm">No insights available.</p>
+          <p style={{ color: MUTED, fontSize: "13px" }}>No insights available.</p>
         )}
       </div>
     </div>
@@ -221,39 +325,48 @@ function InsightsCard({ insights }) {
 
 function TopProductsTable({ products }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-      <h2 className="text-xl font-semibold mb-1">Top 5 Products</h2>
-      <p className="text-sm text-slate-400 mb-4">
-        Highest revenue-generating products
+    <div style={{ backgroundColor: CARD_BG, padding: "24px" }}>
+      <p style={{ color: AMBER_DIM, fontSize: "10px", letterSpacing: "0.18em" }} className="uppercase mb-1">
+        Rankings
       </p>
+      <h2 style={{ fontFamily: SERIF }} className="text-lg font-bold text-stone-100 mb-5">
+        Top products
+      </h2>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="text-slate-400 border-b border-slate-700">
-            <tr>
-              <th className="text-left py-3">Product</th>
-              <th className="text-left py-3">Category</th>
-              <th className="text-right py-3">Revenue</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {products.map((product, index) => (
-              <tr key={index} className="border-b border-slate-800">
-                <td className="py-3">{product.name}</td>
-                <td className="py-3 text-slate-400">{product.category}</td>
-                <td className="py-3 text-right font-medium">
-                  ${product.revenue?.toLocaleString()}
-                </td>
-              </tr>
+      <table className="w-full">
+        <thead>
+          <tr style={{ borderBottom: `1px solid ${BORDER}` }}>
+            {["Product", "Category", "Revenue"].map((h, i) => (
+              <th
+                key={h}
+                style={{ color: MUTED, fontSize: "10px", letterSpacing: "0.15em", fontWeight: 400, paddingBottom: "10px" }}
+                className={`uppercase ${i === 2 ? "text-right" : "text-left"}`}
+              >
+                {h}
+              </th>
             ))}
-          </tbody>
-        </table>
+          </tr>
+        </thead>
+        <tbody>
+          {products.map((product, index) => (
+            <tr key={index} style={{ borderBottom: `1px solid ${BORDER}` }}>
+              <td style={{ padding: "12px 0", fontSize: "13px" }} className="text-stone-200 pr-4">
+                {product.name}
+              </td>
+              <td style={{ padding: "12px 0", fontSize: "13px", color: MUTED }}>
+                {product.category}
+              </td>
+              <td style={{ padding: "12px 0", fontSize: "13px" }} className="text-right text-stone-200 font-medium">
+                ${product.revenue?.toLocaleString()}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
-        {products.length === 0 && (
-          <p className="text-slate-400 text-sm mt-4">No product data found.</p>
-        )}
-      </div>
+      {products.length === 0 && (
+        <p style={{ color: MUTED, fontSize: "13px", marginTop: "16px" }}>No product data found.</p>
+      )}
     </div>
   );
 }
