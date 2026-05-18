@@ -1,6 +1,6 @@
 # E-Commerce KPI Dashboard
 
-A full-stack business intelligence dashboard that turns raw e-commerce transaction data into actionable metrics and plain-English insights. Built with a FastAPI backend and a React frontend, deployed across Render and Vercel.
+A full-stack business analytics dashboard that turns simulated e-commerce transaction data into actionable KPIs and plain-English business insights. Built with a FastAPI backend, SQLite database, and React frontend, then deployed with Render and Vercel.
 
 **[Live Demo →](https://ecommerce-kpi-dashboard-tau.vercel.app)**
 
@@ -10,7 +10,7 @@ A full-stack business intelligence dashboard that turns raw e-commerce transacti
 
 ## What it does
 
-The dashboard ingests a seeded SQLite database of simulated e-commerce orders, customers, and products, then surfaces the metrics a business operator actually needs:
+The dashboard uses a seeded SQLite database of simulated e-commerce orders, customers, and products, then surfaces the metrics a small business operator would actually monitor:
 
 | Metric | Description |
 |---|---|
@@ -24,7 +24,7 @@ The dashboard ingests a seeded SQLite database of simulated e-commerce orders, c
 | **Top 5 Products** | Highest-grossing products ranked by revenue |
 | **Business Insights** | Rule-based natural language recommendations derived from the KPIs |
 
-All metrics respond to a **7 / 30 / 90-day filter** — switching the window recalculates everything in real time.
+All metrics respond to a **7 / 30 / 90-day filter** — switching the window re-fetches the API and recalculates the dashboard for the selected period.
 
 ---
 

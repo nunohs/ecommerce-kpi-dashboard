@@ -11,6 +11,7 @@ This file lets the frontend ask the backend for KPI data.
 """
 
 import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,12 +19,14 @@ from calculations import get_all_metrics
 from insights import generate_insights
 from seed_data import seed_database
 
-app = FastAPI(title="E-Commerce KPI Dashboard API")
 
-@app.on_event("startup")
-def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     if not os.path.exists("ecommerce.db"):
         seed_database()
+    yield
+
+app = FastAPI(title="E-Commerce KPI Dashboard API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

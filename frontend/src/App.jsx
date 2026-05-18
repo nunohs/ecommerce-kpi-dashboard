@@ -32,18 +32,22 @@ function formatMastDate(date) {
 function App() {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [selectedDays, setSelectedDays] = useState(90);
 
   const fetchMetrics = useCallback(async (days) => {
     try {
       setLoading(true);
+      setError(null);
       const response = await fetch(`${API_BASE_URL}/metrics?days=${days}`);
+      if (!response.ok) throw new Error(`Server responded with ${response.status}`);
       const data = await response.json();
       setDashboardData(data);
       setLastUpdated(new Date());
-    } catch (error) {
-      console.error("Error fetching metrics:", error);
+    } catch (err) {
+      console.error("Error fetching metrics:", err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -59,6 +63,33 @@ function App() {
         <p style={{ color: MUTED, letterSpacing: "0.2em", fontSize: "11px" }} className="uppercase">
           Loading
         </p>
+      </div>
+    );
+  }
+
+  if (error && !dashboardData) {
+    return (
+      <div style={{ backgroundColor: PAGE_BG }} className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <p style={{ color: MUTED, letterSpacing: "0.2em", fontSize: "11px" }} className="uppercase">
+          Failed to load dashboard
+        </p>
+        <p style={{ color: FAINT, fontSize: "12px" }}>{error}</p>
+        <button
+          onClick={() => fetchMetrics(selectedDays)}
+          style={{
+            fontSize: "11px",
+            letterSpacing: "0.12em",
+            border: `1px solid ${FAINT}`,
+            color: MUTED,
+            backgroundColor: "transparent",
+            padding: "6px 16px",
+            cursor: "pointer",
+            marginTop: "8px",
+          }}
+          className="uppercase"
+        >
+          ↺ Retry
+        </button>
       </div>
     );
   }
